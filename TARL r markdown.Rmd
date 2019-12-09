@@ -9,22 +9,100 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+## Comparison of dental pathologies between adult male vs. female archaic populations from two southwest Texas archaeological sites.
+Various components of dental health have been used in bioarchaeology to address larger questions (e.g., dietary and nutritional changes, behavior, etc.). However, few studies looking at dental pathologies have been conducted on archaic populations from Southwestern Texas mortuary sites despite the large skeletal assemblages recovered in the twentieth century. This study attempts to expand on previous research conducted on the Archaic Western Gulf Coastal Plains of Texas. The focus is on contemporaneous mortuary sites, Ernest Witte and Morhiss to assess findings under the theoretical frameworks of life course theory and developmental origins of health and disease. 
+The purpose of this research is to examine the interrelatedness of early childhood stress, as indicated by incidences of linear enamel hypoplasias, and dental pathologies experienced later in adulthood (e.g., abscesses and caries) among Archaic Texas gulf coast hunter-gatherer groups. The skeletal remains from Ernest Witte (41AU36) (n = 235) and Morhiss (41VT1) (n = 179) were examined in this study. Available dentition was assessed for the presence of abscesses, caries, and linear enamel hypoplasia using a DinoLite. Statistical analysis Chi-squared test using R-Studio indicates that there are statistically significant correlations between incidences of childhood stress and adulthood dental pathologies for Ernest Witte site. Conversely, there is no such correlation for Morhiss site. These results provide evidence that the presence of caries and abscesses at the Morhiss site are likely influenced by environmental factors (e.g., dietary trends) whereas the Ernest Witte site indicates a predisposition from early childhood stress episodes.
+ 
 
 ```{r cars}
-summary(cars)
+f <- "~/Desktop/Repos/tarl-data/TARL Project - Data.xlsx"
+library(readxl)
+TD <- read_excel(f, sheet = 1, col_names = TRUE)
+head(TD)
+TD <- read_excel(f, sheet = 6, col_names = TRUE)
+head(TD)
+
+
+library(dplyr)
+library(ggplot2)
+
+
+library(skimr)
+library(kableExtra)
+c <- skim(TD)
+c %>% select(-type, -missing, -complete, -n, -empty, -n_unique) %>% kable() %>% kable_styling(font_size = 10)
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r cars}
+library(summarytools)
+s1 <- descr(TARL_Data, style = "rmarkdown", transpose = TRUE)
+s1 %>% summarytools::view()
+s1 <- dfSummary(TARL_Data, style = "grid", plain.ascii = FALSE)
+s1 %>% summarytools::view()
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r cars}
+
+
+par(mfrow = c(1, 2)) 
+attach(TD)  
+hist(log(LLC), freq = FALSE, col = "red", main = "Hist of LLC (using Log)", xlab = "log(LLC)", 
+     ylab = "density", ylim = c(0, 3))
+abline(v = mean(log(LLC), na.rm = TRUE))
+
+
+hist(log(RLC), freq = FALSE, col = "red", main = "Hist of RLC (using Log)", xlab = "log(RLC)", 
+     ylab = "density", ylim = c(0, 3))
+abline(v = mean(log(RLC), na.rm = TRUE))
+```
+
+## 
+
+
+
+```{r cars}
+table(TD$Site, TD$Pathology)
+chisq.test(TD$Site, TD$Pathology)
+chisq.test(TD$Site, TD$Pathology, correct = FALSE)
+chisq <- chisq.test(TD$Site,TD$Pathology)
+chisq$observed
+round(chisq$expected,2)
+
+d <- filter(TD, Site=="Ernest Witte")
+View(d)
+table(d$Abscesses)
+table(d$Caries)
+table(d$LEH)
+summary(d$Caries,d$LEH)
+table(d$LEH,d$Caries)
+table(d$LEH,d$Abscesses)
+chisq.test(d$LEH,d$Abscesses)
+chisq <-chisq.test(d$LEH,d$Abscesses)
+chisq$observed
+chisq$expected
+chisq.test(d$LEH,d$Caries)
+chisq.test(d$LEH,d$Caries) -> s
+s$observed
+s$expected
+s
+
+
+m <- filter(TD, Site=="Morhiss")
+View(m)
+table(m$LEH, m$Abscesses)
+chisq1 <- chisq.test(m$LEH, m$Abscesses)
+chisq1
+chisq1$observed
+chisq1$expected
+summary(chisq1)
+
+chisq2 <- chisq.test(m$LEH, m$Caries)
+chisq2
+chisq2$observed
+chisq2$expected
+
+```
+
+
