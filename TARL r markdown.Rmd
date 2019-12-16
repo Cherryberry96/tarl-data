@@ -10,99 +10,569 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## Comparison of dental pathologies between adult male vs. female archaic populations from two southwest Texas archaeological sites.
-Various components of dental health have been used in bioarchaeology to address larger questions (e.g., dietary and nutritional changes, behavior, etc.). However, few studies looking at dental pathologies have been conducted on archaic populations from Southwestern Texas mortuary sites despite the large skeletal assemblages recovered in the twentieth century. This study attempts to expand on previous research conducted on the Archaic Western Gulf Coastal Plains of Texas. The focus is on contemporaneous mortuary sites, Ernest Witte and Morhiss to assess findings under the theoretical frameworks of life course theory and developmental origins of health and disease. 
-The purpose of this research is to examine the interrelatedness of early childhood stress, as indicated by incidences of linear enamel hypoplasias, and dental pathologies experienced later in adulthood (e.g., abscesses and caries) among Archaic Texas gulf coast hunter-gatherer groups. The skeletal remains from Ernest Witte (41AU36) (n = 235) and Morhiss (41VT1) (n = 179) were examined in this study. Available dentition was assessed for the presence of abscesses, caries, and linear enamel hypoplasia using a DinoLite. Statistical analysis Chi-squared test using R-Studio indicates that there are statistically significant correlations between incidences of childhood stress and adulthood dental pathologies for Ernest Witte site. Conversely, there is no such correlation for Morhiss site. These results provide evidence that the presence of caries and abscesses at the Morhiss site are likely influenced by environmental factors (e.g., dietary trends) whereas the Ernest Witte site indicates a predisposition from early childhood stress episodes.
- 
 
-```{r cars}
+# Abstract (EDITED)
+Various components of dental health have been used in bioarchaeology to address larger questions (e.g., dietary and nutritional changes, behavior, etc.). However, few studies looking at dental pathologies have been conducted on archaic populations from Southwestern Texas mortuary sites despite the large skeletal assemblages recovered in the twentieth century. This study attempts to expand on previous research conducted on the Archaic Western Gulf Coastal Plains of Texas. The focus is on contemporaneous mortuary sites, Ernest Witte and Morhiss to assess findings under the theoretical frameworks of life course theory and developmental origins of health and disease. 
+The purpose of this research is to examine the interrelatedness of early childhood stress, as indicated by incidences of linear enamel hypoplasias, and dental pathologies experienced later in adulthood (e.g., abscesses and caries) among Archaic Texas gulf coast hunter-gatherer groups. The skeletal remains from Ernest Witte (41AU36) (n = 228) and Morhiss (41VT1) (n = 176) were examined in this study. Available dentition was assessed for the presence of abscesses, caries, and linear enamel hypoplasia using a DinoLite. Statistical analysis Chi-squared test using R-Studio indicates that there are statistically significant correlations between incidences of childhood stress and adulthood dental pathologies for Ernest Witte site. Conversely, there is no such correlation for Morhiss site. These results provide evidence that the presence of caries and abscesses at the Morhiss site are likely influenced by environmental factors (e.g., dietary trends) whereas the Ernest Witte site indicates a predisposition from early childhood stress episodes.
+ 
+# Background
+Before continuing with analysis of the data collected, it may serve useful to define the pathologies examined as well as briefly discussing the variables used in the dataset.
+
+Firstly, Linear Enamel Hypoplasia, or LEH, is best described as a pathology that occurs when a stress event causes a disruption of ameloblast activity during tooth development and results in irregular prism stuctures called Wilson bands (Witzel et. al, 2008). For this study, a Dino-lite was used to measure the distance of an LEH landmark on a tooth from the CEJ (cementoenamel junction), hence the variable "Distance." The variable "Duration" describes the length of the LEH landmark/Wilson band, which represents the duration of a stress event that resulted in the LEH formation. Lastly, Age of Insult describes the age an individual was at the time of LEH formation and was found using an LEH calculator that took into account a tooth's amount of wear and crown size (measured using digital calipers) as well as the LEH's distance from the CEJ (Cares Enriquez 2018).
+
+Abcesses are best describes as the resorption of alveolar bone such that the apical end of a tooth root is exposed, often due to bacterial infection in a pulp cavity that creates pus and results in necrosis of surrounding tissues and occasionally bone loss (Nagy 2008). Here, we determined an important distinction between abscesses and the pathologically similar cysts and granulomas in that abscesses tend to have a more rounded and porous surface because of the surrounding blood supply, while cysts and granulomas tend to have thin, sharper margins that are the result of a formation of a membranous lining in the cavity (Ogden 2008).
+
+Lastly, Caries are considered to be an infectious disease in which tooth demineralization occurs as a result of cariogenous bacteria collecting and fermenting sugars rich in carbohydrates which lead to cavities on a tooth (Dockall 1997).
+
+Both abscesses and caries were recorded in terms of presence or abscence on an individual in which 0 is absent and 1 is present. For the purposes of the following analyses, LEH age at formation was average for each tooth that was examined to reduce the possible amount of skew in data as a result of multiple LEH measurements on some teeth than others.
+
+
+# Dataset and Descriptive Statistics
+
+I first imported my data set and assigned it to the vector "TD," which contained all of the 228 individuals from the Ernest Witte site and the 176 individuals from the Morhiss site with burial numbers and HO numbers. That is, although a larger number of individuals can be found in the initial inventory, only those with associated proveniences and HO numbers were included in the sample size of interest. Secondly, I filtered the TD data into TD1 using the dplyr package. Now the dataset contains only individuals that were considered adults, specifically selecting for the categories "Adult," "Adult1," "Adult2," and "OA" (Older Adult).
+```{r}
 f <- "~/Desktop/Repos/tarl-data/TARL Project - Data.xlsx"
 library(readxl)
-TD <- read_excel(f, sheet = 1, col_names = TRUE)
+TD <- read_excel(f, sheet = 7, col_names = TRUE)
 head(TD)
-TD <- read_excel(f, sheet = 6, col_names = TRUE)
-head(TD)
+View(TD)
 
 
 library(dplyr)
 library(ggplot2)
 
-
+TD1 <- filter(TD, Age=="Adult" | Age=="Adult1" | Age=="Adult2" | Age=="OA")
 library(skimr)
 library(kableExtra)
-c <- skim(TD)
+c <- skim(TD1)
+c <-skim_to_wide(TD1)
 c %>% select(-type, -missing, -complete, -n, -empty, -n_unique) %>% kable() %>% kable_styling(font_size = 10)
 ```
 
 
-```{r cars}
+After selecting for our adult subset of the original sample, we can compare the descriptive statistics using the summarytools package. Additional descriptive statistics using the kableExtra and skimr packages were used.
+
+```{r}
 library(summarytools)
-s1 <- descr(TARL_Data, style = "rmarkdown", transpose = TRUE)
+s1 <- dfSummary(TD, style = "grid", plain.ascii = FALSE)
 s1 %>% summarytools::view()
-s1 <- dfSummary(TARL_Data, style = "grid", plain.ascii = FALSE)
-s1 %>% summarytools::view()
+s2 <- dfSummary(TD1, style = "grid", plain.ascii = FALSE)
+s2 %>% summarytools::view()
+```
+
+# Analysis of Ernest Witte Data
+
+Firsly, as previously mentioned, this study used a chi-squared statistic to determine whether there is a relation between the presence of LEH and either the presence of abscesses or caries. In other words, the goal was to try to determine whether or not LEH can be considered a predictor for occurence of Abscesses or Caries. the dplyr "filter" function was once again used to select for the Site Ernest Witte. In the following code "EWA" represents Ernest Witte Abscesses, or the total number abscesses of the Ernest Witte Site in all adult individuals. Likewise, EWC represents Ernest Witte Caries, which evaluates the caries in the adult subsample of the Ernest Witte site. Furthermore, other subsamples for further chi square analyses were done such as EWM which represents the male population, EWF, for Ernest Witte females, and EWI for individuals in the Ernest Witte population that were of Indeterminate sex. Other vectors such as EWMA or EWMC represents "Ernest Witte Male Abscesses" and "Ernest Witte Male Caries" - similar letterings were done for females and indeterminate.
+
+```{r}
+EW <- filter(TD1, Site=="Ernest Witte")
+View(EW)
+table(EW$Abscesses)
+table(EW$Caries)
+table(EW$LEH)
+
+table(EW$LEH,EW$Caries)
+table(EW$LEH,EW$Abscesses)
+chisq.test(EW$LEH,EW$Abscesses)
+EWA <-chisq.test(EW$LEH,EW$Abscesses)
+EWA$observed
+EWA$expected
+
+chisq.test(EW$LEH,EW$Caries)
+EWC <- chisq.test(EW$LEH,EW$Caries)
+EWC$observed
+EWC$expected
+EWC
 ```
 
 
-```{r cars}
+```{r}
+EWM <- filter(EW, Sex=="M")
+table(EWM$Abscesses)
+table(EWM$Caries)
+chisq.test(EWM$LEH,EWM$Abscesses)
+EWMA <-chisq.test(EWM$LEH,EWM$Abscesses)
+EWMA$observed
+EWMA$expected
 
+chisq.test(EWM$LEH,EWM$Caries)
+EWMC <- chisq.test(EWM$LEH,EWM$Caries)
+EWMC$observed
+EWMC$expected
+```
+
+
+```{r}
+EWF <- filter(EW, Sex=="F")
+table(EWF$Abscesses)
+table(EWF$Caries)
+chisq.test(EWF$LEH,EWF$Abscesses)
+EWFA <-chisq.test(EWF$LEH,EWF$Abscesses)
+EWFA$observed
+EWFA$expected
+
+chisq.test(EWF$LEH,EWF$Caries)
+EWFC <- chisq.test(EWF$LEH,EWF$Caries)
+EWFC$observed
+EWFC$expected
+```
+
+
+```{r}
+EWI <- filter(EW, Sex=="I")
+table(EWI$Abscesses)
+table(EWI$Caries)
+chisq.test(EWI$LEH,EWI$Abscesses)
+EWIA <-chisq.test(EWI$LEH,EWI$Abscesses)
+EWIA$observed
+EWIA$expected
+
+chisq.test(EWI$LEH,EWI$Caries)
+EWIC <- chisq.test(EWI$LEH,EWI$Caries)
+EWIC$observed
+EWIC$expected
+```
+
+From the analyses, the results in the relationship between LEH and Abscesses or LEH and caries were NOT significant in the entire adult population, the male subset, the female subset or the Indeterminate subset. From this, we can say that LEH and possible associated stress events are not a predisposition for abscesses or caries.
+
+# Analysis of Morhiss Data
+
+Similar to the the Analysis of Ernest Witte data above, here I selected for individuals from the Morhiss site using the Dplyr package and filter function and created subsets of the population for males, females and Indeterminates. Chi-square tests were once again performed using the chisq.test function.
+
+```{r}
+M <- filter(TD1, Site=="Morhiss")
+View(M)
+table(M$Abscesses)
+table(M$Caries)
+table(M$LEH)
+
+table(M$LEH,M$Caries)
+table(M$LEH,M$Abscesses)
+chisq.test(M$LEH,M$Abscesses)
+MA <-chisq.test(M$LEH,M$Abscesses)
+MA$observed
+MA$expected
+
+chisq.test(M$LEH,M$Caries)
+MC <- chisq.test(M$LEH,M$Caries)
+MC$observed
+MC$expected
+MC
+```
+
+
+```{r}
+MM <- filter(M, Sex=="M")
+View(MM)
+table(MM$Abscesses)
+table(MM$Caries)
+table(MM$LEH)
+
+table(MM$LEH,MM$Caries)
+table(MM$LEH,MM$Abscesses)
+chisq.test(MM$LEH,MM$Abscesses)
+MMA <-chisq.test(MM$LEH,MM$Abscesses)
+MMA$observed
+MMA$expected
+
+chisq.test(MM$LEH,MM$Caries)
+MMC <- chisq.test(MM$LEH,MM$Caries)
+MMC$observed
+MMC$expected
+MMC
+```
+
+
+```{r}
+MF <- filter(M, Sex=="F")
+View(MF)
+table(MF$Abscesses)
+table(MF$Caries)
+table(MF$LEH)
+
+table(MF$LEH,MF$Caries)
+table(MF$LEH,MF$Abscesses)
+
+chisq.test(MF$LEH,MF$Caries)
+MFC <- chisq.test(MF$LEH,MF$Caries)
+MFC$observed
+MFC$expected
+MFC
+```
+
+
+```{r}
+MI <- filter(M, Sex=="I")
+View(MI)
+table(MI$Abscesses)
+table(MI$Caries)
+table(MI$LEH)
+
+table(MI$LEH,MI$Caries)
+table(MI$LEH,MI$Abscesses)
+chisq.test(MI$LEH,MI$Abscesses)
+MIA <-chisq.test(MI$LEH,MI$Abscesses)
+MIA$observed
+MIA$expected
+
+chisq.test(MI$LEH,MI$Caries)
+MIC <- chisq.test(MI$LEH,MI$Caries)
+MIC$observed
+MIC$expected
+MIC
+```
+
+Unlike the Ernest Witte samples, here we can see that there is a signicance in the relationship between LEH and abscesses as well as LEH and caries for the adult population at the Morhiss site. However, interestingly, there does not appear to be a significance in the relationship of caries and abscesses to LEH in the male, female or indeterminate subsamples. However, this is likely due to the relatively small number of individuals in the subsets with these pathologies. In the overall adult sample however, the analysis suggests that stress events related to LEH may in fact be a predisposition for LEH and Caries.
+
+# Closer look at LEH Age at Formation for Each Tooth
+
+Teeth of interest that were assesed and had age at formation calculated for included the anterior dentition mainly because LEH tends to be more readily apparent. Anterior dentition includes the upper and lower central and lateral incisors (RUI1, LUI1, RUI2, LUI2, RLI1, LLI1, RLI2, LLI2), and the upper and lower canines (RUC, LUC, RLC, LLC). The averages of age at formation were also logged using the log function to further reduce any potential skewing of data. Histograms were also created for each tooth using the Hist function, and the following data includes only adult individuals with LEH for both the Ernest Witte Site and the Morhiss site.
+
+```{r}
+library(dplyr)
+EW <- filter(TD1, Site=="Ernest Witte")
+EW1 <- filter(EW, LEH=="1")
 
 par(mfrow = c(1, 2)) 
-attach(TD)  
-hist(log(LLC), freq = FALSE, col = "red", main = "Hist of LLC (using Log)", xlab = "log(LLC)", 
-     ylab = "density", ylim = c(0, 3))
-abline(v = mean(log(LLC), na.rm = TRUE))
+attach(EW1)  
+hist(log(RUI1), freq = FALSE, col = "red", main = "Hist of RUI1", xlab = "log(RUI1)", 
+     ylab = "density", ylim = c(0, 5))
 
 
-hist(log(RLC), freq = FALSE, col = "red", main = "Hist of RLC (using Log)", xlab = "log(RLC)", 
-     ylab = "density", ylim = c(0, 3))
-abline(v = mean(log(RLC), na.rm = TRUE))
+hist(log(LUI1), freq = FALSE, col = "red", main = "Hist of LUI1", xlab = "log(LUI1)", 
+     ylab = "density", ylim = c(0, 5))
+
+
+hist(log(RUI2), freq = FALSE, col = "red", main = "Hist of RUI2", xlab = "log(RUI2)", 
+     ylab = "density", ylim = c(0, 5))
+
+
+hist(log(LUI2), freq = FALSE, col = "red", main = "Hist of LUI2", xlab = "log(LUI2)", 
+     ylab = "density", ylim = c(0, 5))
+
+
+hist(log(RUC), freq = FALSE, col = "red", main = "Hist of RUC", xlab = "log(RUC)", 
+     ylab = "density", ylim = c(0, 5))
+
+
+hist(log(LUC), freq = FALSE, col = "red", main = "Hist of LUC", xlab = "log(LUC)", 
+     ylab = "density", ylim = c(0, 5))
+
+
+hist(log(RLI1), freq = FALSE, col = "red", main = "Hist of RLI1", xlab = "log(RLI1)", 
+     ylab = "density", ylim = c(0, 5))
+
+
+hist(log(LLI1), freq = FALSE, col = "red", main = "Hist of LLI1", xlab = "log(LLI1)", 
+     ylab = "density", ylim = c(0, 5))
+
+
+hist(log(RLI2), freq = FALSE, col = "red", main = "Hist of RLI2", xlab = "log(RLI2)", 
+     ylab = "density", ylim = c(0, 5))
+
+
+hist(log(LLI2), freq = FALSE, col = "red", main = "Hist of LLI2", xlab = "log(LLI2)", 
+     ylab = "density", ylim = c(0, 5))
+
+
+hist(log(RLC), freq = FALSE, col = "red", main = "Hist of RLC", xlab = "log(RLC)", 
+     ylab = "density", ylim = c(0, 5))
+
+
+
+hist(log(LLC), freq = FALSE, col = "red", main = "Hist of LLC", xlab = "log(LLC)", 
+     ylab = "density", ylim = c(0, 5))
 ```
 
-## 
+Here, boxplots were created as another vizualization of the spread of data for each tooth in a site using the plot function. Then, logistic models were run on each tooth for each site using the glm function and the filter function and completed according to pathology (e.g., Abscesses or Caries). The purpose was to see if there would be a relation in whether a specific tooth would be a better predictor for pathology in individuals with LEH.
 
+```{r}
+EW1 <- filter(EW, LEH=="1")
 
+par(mfrow = c(1, 2))
+plot(as.factor(EW1$Abscesses), EW1$RUI1, xlab = "Abscesses", ylab = "RUI1", col = "lightgreen")
+plot(as.factor(EW1$Abscesses), EW1$LUI1, xlab = "Abscesses", ylab = "LUI1", col = "green")
+logistic <- glm(data = EW1, Abscesses ~ RUI1, family = "binomial")
+summary(logistic)
+logistic1 <- glm(data = EW1, Abscesses ~ LUI1, family = "binomial")
+summary(logistic1)
 
-```{r cars}
-table(TD$Site, TD$Pathology)
-chisq.test(TD$Site, TD$Pathology)
-chisq.test(TD$Site, TD$Pathology, correct = FALSE)
-chisq <- chisq.test(TD$Site,TD$Pathology)
-chisq$observed
-round(chisq$expected,2)
+par(mfrow = c(1, 2))
+plot(as.factor(EW1$Abscesses), EW1$RUI2, xlab = "Abscesses", ylab = "RUI2", col = "lightgreen")
+plot(as.factor(EW1$Abscesses), EW1$LUI2, xlab = "Abscesses", ylab = "LUI2", col = "green")
+logistic3 <- glm(data = EW1, Abscesses ~ RUI2, family = "binomial")
+summary(logistic3)
+logistic4 <- glm(data = EW1, Abscesses ~ LUI2, family = "binomial")
+summary(logistic4)
 
-d <- filter(TD, Site=="Ernest Witte")
-View(d)
-table(d$Abscesses)
-table(d$Caries)
-table(d$LEH)
-summary(d$Caries,d$LEH)
-table(d$LEH,d$Caries)
-table(d$LEH,d$Abscesses)
-chisq.test(d$LEH,d$Abscesses)
-chisq <-chisq.test(d$LEH,d$Abscesses)
-chisq$observed
-chisq$expected
-chisq.test(d$LEH,d$Caries)
-chisq.test(d$LEH,d$Caries) -> s
-s$observed
-s$expected
-s
+par(mfrow = c(1, 2))
+plot(as.factor(EW1$Abscesses), EW1$RUC, xlab = "Abscesses", ylab = "RUC", col = "lightgreen")
+plot(as.factor(EW1$Abscesses), EW1$LUC, xlab = "Abscesses", ylab = "LUC", col = "green")
+logistic5 <- glm(data = EW1, Abscesses ~ RUC, family = "binomial")
+summary(logistic5)
+logistic6 <- glm(data = EW1, Abscesses ~ LUC, family = "binomial")
+summary(logistic6)
 
+par(mfrow = c(1, 2))
+plot(as.factor(EW1$Abscesses), EW1$RLI1, xlab = "Abscesses", ylab = "RLI1", col = "lightgreen")
+plot(as.factor(EW1$Abscesses), EW1$LLI1, xlab = "Abscesses", ylab = "LLI1", col = "green")
+logistic7 <- glm(data = EW1, Abscesses ~ RLI1, family = "binomial")
+summary(logistic7)
+logistic8 <- glm(data = EW1, Abscesses ~ LLI1, family = "binomial")
+summary(logistic8)
 
-m <- filter(TD, Site=="Morhiss")
-View(m)
-table(m$LEH, m$Abscesses)
-chisq1 <- chisq.test(m$LEH, m$Abscesses)
-chisq1
-chisq1$observed
-chisq1$expected
-summary(chisq1)
+par(mfrow = c(1, 2))
+plot(as.factor(EW1$Abscesses), EW1$RLI2, xlab = "Abscesses", ylab = "RLI2", col = "lightgreen")
+plot(as.factor(EW1$Abscesses), EW1$LLI2, xlab = "Abscesses", ylab = "LLI2", col = "green")
+logistic9 <- glm(data = EW1, Abscesses ~ RLI2, family = "binomial")
+summary(logistic9)
+logistic10 <- glm(data = EW1, Abscesses ~ LLI2, family = "binomial")
+summary(logistic10)
 
-chisq2 <- chisq.test(m$LEH, m$Caries)
-chisq2
-chisq2$observed
-chisq2$expected
-
+par(mfrow = c(1, 2))
+plot(as.factor(EW1$Abscesses), EW1$RLC, xlab = "Abscesses", ylab = "RLC", col = "lightgreen")
+plot(as.factor(EW1$Abscesses), EW1$LLC, xlab = "Abscesses", ylab = "LLC", col = "green")
+logistic11 <- glm(data = EW1, Abscesses ~ RLC, family = "binomial")
+summary(logistic9)
+logistic12 <- glm(data = EW1, Abscesses ~ LLC, family = "binomial")
+summary(logistic10)
 ```
 
+
+```{r}
+EW1 <- filter(EW, LEH=="1")
+
+par(mfrow = c(1, 2))
+plot(as.factor(EW1$Caries), EW1$RUI1, xlab = "Caries", ylab = "RUI1", col = "salmon")
+plot(as.factor(EW1$Caries), EW1$LUI1, xlab = "Caries", ylab = "LUI1", col = "pink")
+logistic <- glm(data = EW1, Caries ~ RUI1, family = "binomial")
+summary(logistic)
+logistic1 <- glm(data = EW1, Caries ~ LUI1, family = "binomial")
+summary(logistic1)
+
+par(mfrow = c(1, 2))
+plot(as.factor(EW1$Caries), EW1$RUI2, xlab = "Caries", ylab = "RUI2", col = "salmon")
+plot(as.factor(EW1$Caries), EW1$LUI2, xlab = "Caries", ylab = "LUI2", col = "pink")
+logistic3 <- glm(data = EW1, Caries ~ RUI2, family = "binomial")
+summary(logistic3)
+logistic4 <- glm(data = EW1, Caries ~ LUI2, family = "binomial")
+summary(logistic4)
+
+par(mfrow = c(1, 2))
+plot(as.factor(EW1$Caries), EW1$RUC, xlab = "Caries", ylab = "RUC", col = "salmon")
+plot(as.factor(EW1$Caries), EW1$LUC, xlab = "Caries", ylab = "LUC", col = "pink")
+logistic5 <- glm(data = EW1, Caries ~ RUC, family = "binomial")
+summary(logistic5)
+logistic6 <- glm(data = EW1, Caries ~ LUC, family = "binomial")
+summary(logistic6)
+
+par(mfrow = c(1, 2))
+plot(as.factor(EW1$Caries), EW1$RLI1, xlab = "Caries", ylab = "RLI1", col = "salmon")
+plot(as.factor(EW1$Caries), EW1$LLI1, xlab = "Caries", ylab = "LLI1", col = "pink")
+logistic7 <- glm(data = EW1, Caries ~ RLI1, family = "binomial")
+summary(logistic7)
+logistic8 <- glm(data = EW1, Caries ~ LLI1, family = "binomial")
+summary(logistic8)
+
+par(mfrow = c(1, 2))
+plot(as.factor(EW1$Caries), EW1$RLI2, xlab = "Caries", ylab = "RLI2", col = "salmon")
+plot(as.factor(EW1$Caries), EW1$LLI2, xlab = "Caries", ylab = "LLI2", col = "pink")
+logistic9 <- glm(data = EW1, Caries ~ RLI2, family = "binomial")
+summary(logistic9)
+logistic10 <- glm(data = EW1, Caries ~ LLI2, family = "binomial")
+summary(logistic10)
+
+par(mfrow = c(1, 2))
+plot(as.factor(EW1$Caries), EW1$RLC, xlab = "Caries", ylab = "RLC", col = "salmon")
+plot(as.factor(EW1$Caries), EW1$LLC, xlab = "Caries", ylab = "LLC", col = "pink")
+logistic11 <- glm(data = EW1, Caries ~ RLC, family = "binomial")
+summary(logistic11)
+logistic12 <- glm(data = EW1, Caries ~ LLC, family = "binomial")
+summary(logistic12)
+```
+
+
+```{r}
+library(dplyr)
+M <- filter(TD1, Site=="Morhiss")
+M1 <- filter(M, LEH=="1")
+
+par(mfrow = c(1, 2)) 
+attach(M1)  
+hist(log(RUI1), freq = FALSE, col = "red", main = "Hist of RUI1", xlab = "log(RUI1)", 
+     ylab = "density", ylim = c(0, 5))
+
+
+hist(log(LUI1), freq = FALSE, col = "red", main = "Hist of LUI1", xlab = "log(LUI1)", 
+     ylab = "density", ylim = c(0, 5))
+
+
+hist(log(RUI2), freq = FALSE, col = "red", main = "Hist of RUI2", xlab = "log(RUI2)", 
+     ylab = "density", ylim = c(0, 5))
+
+
+hist(log(LUI2), freq = FALSE, col = "red", main = "Hist of LUI2", xlab = "log(LUI2)", 
+     ylab = "density", ylim = c(0, 5))
+
+
+hist(log(RUC), freq = FALSE, col = "red", main = "Hist of RUC", xlab = "log(RUC)", 
+     ylab = "density", ylim = c(0, 5))
+
+
+hist(log(LUC), freq = FALSE, col = "red", main = "Hist of LUC", xlab = "log(LUC)", 
+     ylab = "density", ylim = c(0, 5))
+
+
+hist(log(RLI1), freq = FALSE, col = "red", main = "Hist of RLI1", xlab = "log(RLI1)", 
+     ylab = "density", ylim = c(0, 5))
+
+
+hist(log(LLI1), freq = FALSE, col = "red", main = "Hist of LLI1", xlab = "log(LLI1)", 
+     ylab = "density", ylim = c(0, 5))
+
+
+hist(log(RLI2), freq = FALSE, col = "red", main = "Hist of RLI2", xlab = "log(RLI2)", 
+     ylab = "density", ylim = c(0, 5))
+
+
+hist(log(LLI2), freq = FALSE, col = "red", main = "Hist of LLI2", xlab = "log(LLI2)", 
+     ylab = "density", ylim = c(0, 5))
+
+
+hist(log(RLC), freq = FALSE, col = "red", main = "Hist of RLC", xlab = "log(RLC)", 
+     ylab = "density", ylim = c(0, 5))
+
+
+
+hist(log(LLC), freq = FALSE, col = "red", main = "Hist of LLC", xlab = "log(LLC)", 
+     ylab = "density", ylim = c(0, 5))
+```
+
+
+```{r}
+library(dplyr)
+M <- filter(TD1, Site=="Morhiss")
+M1 <- filter(M, LEH=="1")
+
+
+par(mfrow = c(1, 2))
+plot(as.factor(M1$Abscesses), M1$RUI1, xlab = "Abscesses", ylab = "RUI1", col = "lightgreen")
+plot(as.factor(M1$Abscesses), M1$LUI1, xlab = "Abscesses", ylab = "LUI1", col = "green")
+glm1 <- glm(data = M1, Abscesses ~ RUI1, family = "binomial")
+summary(glm1)
+glm2 <- glm(data = M1, Abscesses ~ LUI1, family = "binomial")
+summary(glm2)
+
+par(mfrow = c(1, 2))
+plot(as.factor(M1$Abscesses), M1$RUI2, xlab = "Abscesses", ylab = "RUI2", col = "lightgreen")
+plot(as.factor(M1$Abscesses), M1$LUI2, xlab = "Abscesses", ylab = "LUI2", col = "green")
+glm3 <- glm(data = M1, Abscesses ~ RUI2, family = "binomial")
+summary(glm3)
+glm4 <- glm(data = M1, Abscesses ~ LUI2, family = "binomial")
+summary(glm4)
+
+par(mfrow = c(1, 2))
+plot(as.factor(M1$Abscesses), M1$RUC, xlab = "Abscesses", ylab = "RUC", col = "lightgreen")
+plot(as.factor(M1$Abscesses), M1$LUC, xlab = "Abscesses", ylab = "LUC", col = "green")
+glm5 <- glm(data = M1, Abscesses ~ RUC, family = "binomial")
+summary(glm5)
+glm6 <- glm(data = M1, Abscesses ~ LUC, family = "binomial")
+summary(glm6)
+
+par(mfrow = c(1, 2))
+plot(as.factor(M1$Abscesses), M1$RLI1, xlab = "Abscesses", ylab = "RLI1", col = "lightgreen")
+plot(as.factor(M1$Abscesses), M1$LLI1, xlab = "Abscesses", ylab = "LLI1", col = "green")
+glm7 <- glm(data = M1, Abscesses ~ RLI1, family = "binomial")
+summary(glm7)
+glm8 <- glm(data = M1, Abscesses ~ LLI1, family = "binomial")
+summary(glm8)
+
+par(mfrow = c(1, 2))
+plot(as.factor(M1$Abscesses), M1$RLI2, xlab = "Abscesses", ylab = "RLI2", col = "lightgreen")
+plot(as.factor(M1$Abscesses), M1$LLI2, xlab = "Abscesses", ylab = "LLI2", col = "green")
+glm9 <- glm(data = M1, Abscesses ~ RLI2, family = "binomial")
+summary(glm9)
+glm10 <- glm(data = M1, Abscesses ~ LLI2, family = "binomial")
+summary(glm10)
+
+par(mfrow = c(1, 2))
+plot(as.factor(M1$Abscesses), M1$RLC, xlab = "Abscesses", ylab = "RLC", col = "lightgreen")
+plot(as.factor(M1$Abscesses), M1$LLC, xlab = "Abscesses", ylab = "LLC", col = "green")
+glm11 <- glm(data = M1, Abscesses ~ RLC, family = "binomial")
+summary(glm11)
+glm12 <- glm(data = M1, Abscesses ~ LLC, family = "binomial")
+summary(glm12)
+```
+
+
+```{r}
+library(dplyr)
+M <- filter(TD1, Site=="Morhiss")
+M1 <- filter(M, LEH=="1")
+
+
+par(mfrow = c(1, 2))
+plot(as.factor(M1$Caries), M1$RUI1, xlab = "Caries", ylab = "RUI1", col = "salmon")
+plot(as.factor(M1$Caries), M1$LUI1, xlab = "Caries", ylab = "LUI1", col = "pink")
+glm1 <- glm(data = M1, Caries ~ RUI1, family = "binomial")
+summary(glm1)
+glm2 <- glm(data = M1, Caries ~ LUI1, family = "binomial")
+summary(glm2)
+
+par(mfrow = c(1, 2))
+plot(as.factor(M1$Caries), M1$RUI2, xlab = "Caries", ylab = "RUI2", col = "salmon")
+plot(as.factor(M1$Caries), M1$LUI2, xlab = "Caries", ylab = "LUI2", col = "pink")
+glm3 <- glm(data = M1, Caries ~ RUI2, family = "binomial")
+summary(glm3)
+glm4 <- glm(data = M1, Caries ~ LUI2, family = "binomial")
+summary(glm4)
+
+par(mfrow = c(1, 2))
+plot(as.factor(M1$Caries), M1$RUC, xlab = "Caries", ylab = "RUC", col = "salmon")
+plot(as.factor(M1$Caries), M1$LUC, xlab = "Caries", ylab = "LUC", col = "pink")
+glm5 <- glm(data = M1, Caries ~ RUC, family = "binomial")
+summary(glm5)
+glm6 <- glm(data = M1, Caries ~ LUC, family = "binomial")
+summary(glm6)
+
+par(mfrow = c(1, 2))
+plot(as.factor(M1$Caries), M1$RLI1, xlab = "Caries", ylab = "RLI1", col = "salmon")
+plot(as.factor(M1$Caries), M1$LLI1, xlab = "Caries", ylab = "LLI1", col = "pink")
+glm7 <- glm(data = M1, Caries ~ RLI1, family = "binomial")
+summary(glm7)
+glm8 <- glm(data = M1, Caries ~ LLI1, family = "binomial")
+summary(glm8)
+
+par(mfrow = c(1, 2))
+plot(as.factor(M1$Caries), M1$RLI2, xlab = "Caries", ylab = "RLI2", col = "salmon")
+plot(as.factor(M1$Caries), M1$LLI2, xlab = "Caries", ylab = "LLI2", col = "pink")
+glm9 <- glm(data = M1, Caries ~ RLI2, family = "binomial")
+summary(glm9)
+glm10 <- glm(data = M1, Caries ~ LLI2, family = "binomial")
+summary(glm10)
+
+par(mfrow = c(1, 2))
+plot(as.factor(M1$Caries), M1$RLC, xlab = "Caries", ylab = "RLC", col = "salmon")
+plot(as.factor(M1$Caries), M1$LLC, xlab = "Caries", ylab = "LLC", col = "pink")
+glm11 <- glm(data = M1, Caries ~ RLC, family = "binomial")
+summary(glm11)
+glm12 <- glm(data = M1, Caries ~ LLC, family = "binomial")
+summary(glm12)
+```
+
+Based on the results, analysis of each tooth in individuals with LEH does not appear to be a reliable predictor for the pathologies Abscesses or Caries in either site. Further potential analysis may include redoing this analysis in specific populations as well such as the male, female and indeterminate subsets. 
+
+# Conclusion
+
+With the exception of the results from the adult population in the Morhiss site, the majority of the analysis suggest that stressors related to LEH are not predispositions for the development of other pathologies such as abscesses or caries. It is important to note however, some of the errors that may have arisen in the analyses included the small subsamples and in one particular case, where a chi squared test for Morhiss females could not be conducted because the resulting subset did not leave two levels in one of the variables.
+
+# References
+
+Nagy Annie. 2008. "An Osteological Analysis of Ten Human Crania From Costa Rica." **Annals of Carnegie Museum.** Vol. 76, No. 4. p. 265-278.
+
+Ogden Alan. "Advances in the Paleopathology of Teeth and Jaws." 2008. **Advances in Human Paleopathology.** p283-307.
+
+Dockall Helen. "Archaic Hunter-Gatherer Adaptation on the Inland Portion of the West Gulf Coastal Plain." 1997.
+
+Witzel et. al. 2008
 
